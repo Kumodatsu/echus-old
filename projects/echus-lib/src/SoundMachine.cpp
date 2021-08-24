@@ -3,17 +3,19 @@
 #include <stdexcept>
 #include <string>
 #include <cmath>
+#include <algorithm>
 #include "echus/Math.hpp"
 
 namespace echus {
 
-    SoundMachine::SoundMachine(float master_volume)
+    SoundMachine::SoundMachine(float master_volume, float target_latency)
         : m_soundio(nullptr)
         , m_device(nullptr)
         , m_outstream(nullptr)
         , m_time_offset(0.0f)
         , m_generate_sound(nullptr)
         , m_master_volume(master_volume)
+        , m_target_latency(target_latency)
     {
         using namespace std::literals::string_literals;
 
@@ -46,7 +48,7 @@ namespace echus {
         soundio_destroy(m_soundio);    
     }
 
-    void SoundMachine::Start(std::function<float(float)> generate_sound) {
+    void SoundMachine::StartAsync(std::function<float(float)> generate_sound) {
         using namespace std::literals::string_literals;
 
         m_generate_sound            = generate_sound;
@@ -61,11 +63,10 @@ namespace echus {
                 + soundio_strerror(m_outstream->layout_error));
         if ((error = soundio_outstream_start(m_outstream)))
             throw std::runtime_error("Unable to start device.");
+    }
 
-        std::cout << "Starting" << std::endl;
-
-        while (true)
-            soundio_wait_events(m_soundio);
+    void SoundMachine::WaitForEvents() {
+        soundio_wait_events(m_soundio);
     }
     
     void SoundMachine::StreamCallback(
@@ -82,7 +83,11 @@ namespace echus {
             seconds_per_frame = 1.0f / sample_rate;
 
         SoundIoChannelArea* areas;
-        int frames_left = frame_count_max;
+        int frames_left = std::clamp(
+            static_cast<int>(snd.m_target_latency * sample_rate),
+            frame_count_min,
+            frame_count_max
+        );
 
         int error;
 
