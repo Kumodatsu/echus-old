@@ -22,7 +22,10 @@ add_compile_definitions(SOUNDIO_STATIC_LIBRARY)
 
 add_library(echus-lib STATIC
     projects/echus-lib/src/Echus.cpp
+    projects/echus-lib/src/SoundMachine.cpp
     projects/echus-lib/include/echus/Echus.hpp
+    projects/echus-lib/include/echus/SoundMachine.hpp
+    projects/echus-lib/include/echus/Math.hpp
 )
 target_include_directories(echus-lib PUBLIC
     projects/echus-lib/include
@@ -44,4 +47,7 @@ target_link_libraries(echus-exe PUBLIC
     echus-lib
     libsoundio_static
     ${LIBSOUNDIO_LIBS}
+)
+target_compile_features(echus-exe PUBLIC
+    cxx_std_17
 )
