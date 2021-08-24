@@ -27,9 +27,7 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 # echus-lib
 
 add_library(echus-lib STATIC
-    projects/echus-lib/src/Echus.cpp
     projects/echus-lib/src/SoundMachine.cpp
-    projects/echus-lib/include/echus/Echus.hpp
     projects/echus-lib/include/echus/SoundMachine.hpp
     projects/echus-lib/include/echus/Math.hpp
 )
