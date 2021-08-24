@@ -1,3 +1,6 @@
 [submodule "dependencies/libsoundio"]
 	path = dependencies/libsoundio
 	url = https://www.github.com/andrewrk/libsoundio
+[submodule "dependencies/nanogui"]
+	path = dependencies/nanogui
+	url = https://github.com/mitsuba-renderer/nanogui

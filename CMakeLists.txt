@@ -18,6 +18,12 @@ get_directory_property(LIBSOUNDIO_LIBS
 )
 add_compile_definitions(SOUNDIO_STATIC_LIBRARY)
 
+# dependency nanogui
+
+set(NANOGUI_BUILD_SHARED OFF CACHE BOOL " " FORCE)
+add_subdirectory(dependencies/nanogui)
+add_definitions(${NANOGUI_EXTRA_DEFS})
+
 # echus-lib
 
 add_library(echus-lib STATIC
@@ -42,11 +48,15 @@ add_executable(echus-exe
 )
 target_include_directories(echus-exe PUBLIC
     projects/echus-exe/src
+    dependencies/nanogui
+    ${NANOGUI_EXTRA_INCS}
 )
 target_link_libraries(echus-exe PUBLIC
     echus-lib
     libsoundio_static
     ${LIBSOUNDIO_LIBS}
+    nanogui
+    ${NANOGUI_EXTRA_LIBS}
 )
 target_compile_features(echus-exe PUBLIC
     cxx_std_17
