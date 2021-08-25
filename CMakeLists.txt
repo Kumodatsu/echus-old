@@ -30,6 +30,7 @@ add_library(echus-lib STATIC
     projects/echus-lib/src/SoundMachine.cpp
     projects/echus-lib/include/echus/Instruments.hpp
     projects/echus-lib/include/echus/Math.hpp
+    projects/echus-lib/include/echus/Music.hpp
     projects/echus-lib/include/echus/SoundMachine.hpp
     projects/echus-lib/include/echus/Synthesis.hpp
 )

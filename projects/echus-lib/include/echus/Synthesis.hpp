@@ -1,10 +1,9 @@
 #pragma once
 #include <cstdint>
 #include "echus/Math.hpp"
+#include "echus/Music.hpp"
 
 namespace echus {
-
-    inline constexpr float A2_FREQUENCY = 110.0f;
 
     enum class WaveShape : uint8_t {
         Sine,
