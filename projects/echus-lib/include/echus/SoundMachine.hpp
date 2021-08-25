@@ -12,6 +12,7 @@ namespace echus {
         void StartAsync(std::function<float(float)> generate_sound);
         void WaitForEvents();
 
+        inline float GetTimeOffset() const { return m_time_offset; }
         inline float GetMasterVolume() const { return m_master_volume; }
         inline void SetMasterVolume(float volume) { m_master_volume = volume; }
     private:
