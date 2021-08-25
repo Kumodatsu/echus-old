@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 #include "echus/Math.hpp"
 #include "echus/Music.hpp"
 
@@ -16,39 +17,64 @@ namespace echus {
 
     struct Oscillator {
         WaveShape Shape;
+        float     Amplitude,
+                  Scale,
+                  LFOFreq,
+                  LFOAmp;
 
-        Oscillator(WaveShape shape) : Shape(shape) { }
+        Oscillator(
+            WaveShape shape,
+            float amplitude = 1.0f,
+            float scale     = 1.0f,
+            float lfo_freq  = 0.0f,
+            float lfo_amp   = 0.0f
+        )
+            : Shape(shape)
+            , Amplitude(amplitude)
+            , Scale(scale)
+            , LFOFreq(lfo_freq)
+            , LFOAmp(lfo_amp)
+        { }
 
-        inline float Oscillate(float t, float freq, float lfo_freq = 0.0f,
-                float lfo_amp = 0.0f) const {
+        inline float Oscillate(float t, float freq) const {
+            const float sf = Scale * freq;
             const float f
-                = math::angular(freq) * t
-                + std::sin(math::angular(lfo_freq) * t) * lfo_amp * freq;
+                = math::angular(sf) * t
+                + std::sin(math::angular(LFOFreq) * t) * LFOAmp * sf;
+            
+            float output = 0.0f;
             switch (Shape) {
             case WaveShape::Sine:
-                return std::sin(f);
+                output = std::sin(f);
+                break;
             case WaveShape::Square:
-                return std::sin(f) > 0.0f ? 1.0f : -1.0f;
+                output = std::sin(f) > 0.0f ? 1.0f : -1.0f;
+                break;
             case WaveShape::Triangle:
-                return std::asin(std::sin(f)) * 2.0f / math::PI;
+                output = std::asin(std::sin(f)) * 2.0f / math::PI;
+                break;
             case WaveShape::Sawtooth:
-                return (2.0f / math::PI) * (
-                    freq * math::PI * std::fmod(t, 1.0f / freq)
+                output = (2.0f / math::PI) * (
+                    sf * math::PI * std::fmod(t, 1.0f / sf)
                         - (math::PI / 2.0f)
                 );
+                break;
             case WaveShape::Sawsmooth: {
-                float output = 0.0f;
                 for (float n = 1.0f; n < 100.0f; n += 1.0f)
                     output += std::sin(n * f) / n;
-                return output;
+                break;
             }
             case WaveShape::PsuedoRandomNoise:
-                return std::sin(
+                output = std::sin(
                     2.0f * (float(rand()) / float(RAND_MAX)) - 1.0f
                 );
+                break;
             default:
-                return 0.0f;
+                output = 0.0f;
+                break;
             }
+
+            return Amplitude * output;
         }
     };
 
@@ -103,18 +129,30 @@ namespace echus {
 
     class Instrument {
     public:
-        Instrument(float volume = 1.0f) : m_volume(volume) { }
+        Instrument(
+            const std::vector<Oscillator>& oscillators,
+            const Envelope&                envelope,
+            float                          volume = 1.0f
+        )
+            : m_oscillators(oscillators)
+            , m_envelope(envelope)
+            , m_volume(volume)
+        { }
 
         inline float Play(const Note& note, float t) const {
-            return m_volume * Sound(note, t);
+            const float freq = note.GetFrequency();
+            float amplitude = 0.0f;
+            for (const auto& osc : m_oscillators)
+                amplitude += osc.Oscillate(t, freq);
+            return m_volume * m_envelope.AmplitudeAt(t, note) * amplitude;
         }
 
         inline float GetVolume() const { return m_volume; }
         inline void SetVolume(float volume) { m_volume = volume; }
-    protected:
-        virtual float Sound(const Note& note, float t) const = 0;
     private:
-        float m_volume;
+        std::vector<Oscillator> m_oscillators;
+        Envelope                m_envelope;
+        float                   m_volume;
     };
 
 }

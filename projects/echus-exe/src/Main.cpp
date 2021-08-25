@@ -17,8 +17,7 @@ public:
             false                        // fullscreen
         )
         , m_snd(0.01f)
-        // , m_freq(0.0f)
-        , m_instrument(new echus::instruments::Harmonica)
+        , m_instrument(echus::instruments::SawBass)
         , m_note(echus::NoteID::A, 0, 0)
     { 
         using namespace echus;
@@ -33,12 +32,12 @@ public:
         SetUpInput();
 
         m_snd.StartAsync([this](float t) -> float {
-            return this->m_instrument->Play(this->m_note, t);
+            return this->m_instrument.Play(this->m_note, t);
         });
     }
 
     ~App() {
-        delete m_instrument;
+        
     }
 
     virtual bool keyboard_event(int key, int scancode, int action,
@@ -107,8 +106,7 @@ public:
     }
 private:
     echus::SoundMachine m_snd;
-    // float               m_freq;
-    echus::Instrument*  m_instrument;
+    echus::Instrument   m_instrument;
     echus::Note         m_note;
 
     std::unordered_map<int, bool>         m_keys;
