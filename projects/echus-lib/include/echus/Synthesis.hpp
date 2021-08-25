@@ -57,40 +57,27 @@ namespace echus {
               Decay,
               Release,
               Peak,
-              Sustain,
-              TriggerOnTime,
-              TriggerOffTime;
+              Sustain;
 
         Envelope(
             float attack           = 0.0f,
             float decay            = 0.0f,
             float release          = 0.0f,
             float peak             = 1.0f,
-            float sustain          = 1.0f,
-            float trigger_on_time  = 0.0f,
-            float trigger_off_time = std::numeric_limits<float>::infinity()
+            float sustain          = 1.0f
         )
             : Attack(attack)
             , Decay(decay)
             , Release(release)
             , Peak(peak)
             , Sustain(sustain)
-            , TriggerOnTime(trigger_on_time)
-            , TriggerOffTime(trigger_off_time)
         { }
 
-        inline void SetNoteOn(float t)  {
-            TriggerOnTime  = t;
-            TriggerOffTime = std::numeric_limits<float>::infinity();
-        }
-        inline void SetNoteOff(float t) { TriggerOffTime = t; }
-
-        inline float AmplitudeAt(float t) const {
+        inline float AmplitudeAt(float t, const Note& note) const {
             static constexpr float epsilon = 1.0e-4f;
-            const bool note_on = TriggerOnTime <= t && t < TriggerOffTime;
             float amplitude = 0.0f;
-            if (note_on) {
-                const float life_time = t - TriggerOnTime;
+            if (note.IsOnAt(t)) {
+                const float life_time = t - note.StartTime;
                 if (life_time <= Attack) {
                     // Attack phase
                     const float portion = life_time / Attack;
@@ -103,18 +90,14 @@ namespace echus {
                     // Sustain phase
                     amplitude = Sustain;
                 }
-            } else if (t > TriggerOffTime) {
+            } else if (t > note.EndTime) {
                 // Release phase
-                const float portion = (t - TriggerOffTime) / Release;
+                const float portion = (t - note.EndTime) / Release;
                 amplitude = (1.0f - portion) * Sustain;
             }
             if (amplitude < epsilon)
                 amplitude = 0.0f;
             return amplitude;
-        }
-
-        inline float operator () (float t) const {
-            return AmplitudeAt(t);
         }
     };
 
@@ -122,17 +105,14 @@ namespace echus {
     public:
         Instrument(float volume = 1.0f) : m_volume(volume) { }
 
-        inline float Play(float freq, float t) const {
-            return m_volume * Sound(freq, t);
+        inline float Play(const Note& note, float t) const {
+            return m_volume * Sound(note, t);
         }
 
         inline float GetVolume() const { return m_volume; }
         inline void SetVolume(float volume) { m_volume = volume; }
-
-        virtual void SetNoteOn(float t)  { }
-        virtual void SetNoteOff(float t) { }
     protected:
-        virtual float Sound(float freq, float t) const = 0;
+        virtual float Sound(const Note& note, float t) const = 0;
     private:
         float m_volume;
     };

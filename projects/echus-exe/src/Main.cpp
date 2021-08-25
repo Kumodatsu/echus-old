@@ -17,8 +17,9 @@ public:
             false                        // fullscreen
         )
         , m_snd(0.01f)
-        , m_freq(0.0f)
-        , m_instrument(new echus::instruments::Bell)
+        // , m_freq(0.0f)
+        , m_instrument(new echus::instruments::Harmonica)
+        , m_note(echus::NoteID::A, 0, 0)
     { 
         using namespace echus;
         
@@ -32,7 +33,7 @@ public:
         SetUpInput();
 
         m_snd.StartAsync([this](float t) -> float {
-            return this->m_instrument->Play(this->m_freq, t);
+            return this->m_instrument->Play(this->m_note, t);
         });
     }
 
@@ -56,16 +57,13 @@ public:
                 }
                 if (kvp.second) {
                     any_key_pressed = true;
-                    m_freq = echus::A2_FREQUENCY * std::pow(
-                        echus::math::C_12_ROOT_2,
-                        m_notes[kvp.first]
-                    );
+                    m_note = m_notes[kvp.first];
                 }
             }
             if (any_key_pressed) {
-                m_instrument->SetNoteOn(m_snd.GetTimeOffset());
+                m_note.StartTime = m_snd.GetTimeOffset();
             } else {
-                m_instrument->SetNoteOff(m_snd.GetTimeOffset());
+                m_note.EndTime = m_snd.GetTimeOffset();
             }
         }
         return false;
@@ -89,29 +87,32 @@ public:
         m_keys[GLFW_KEY_PERIOD] =
             false;
 
-        m_notes[GLFW_KEY_Z]      = 0;
-        m_notes[GLFW_KEY_S]      = 1;
-        m_notes[GLFW_KEY_X]      = 2;
-        m_notes[GLFW_KEY_C]      = 3;
-        m_notes[GLFW_KEY_F]      = 4;
-        m_notes[GLFW_KEY_V]      = 5;
-        m_notes[GLFW_KEY_G]      = 6;
-        m_notes[GLFW_KEY_B]      = 7;
-        m_notes[GLFW_KEY_N]      = 8;
-        m_notes[GLFW_KEY_J]      = 9;
-        m_notes[GLFW_KEY_M]      = 10;
-        m_notes[GLFW_KEY_K]      = 11;
-        m_notes[GLFW_KEY_COMMA]  = 12;
-        m_notes[GLFW_KEY_L]      = 13;
-        m_notes[GLFW_KEY_PERIOD] = 14;
+        m_notes.insert({
+            { GLFW_KEY_Z,      echus::Note(echus::NoteID::A,      0, 0) },
+            { GLFW_KEY_S,      echus::Note(echus::NoteID::ASharp, 0, 0) },
+            { GLFW_KEY_X,      echus::Note(echus::NoteID::B,      0, 0) },
+            { GLFW_KEY_C,      echus::Note(echus::NoteID::C,      0, 0) },
+            { GLFW_KEY_F,      echus::Note(echus::NoteID::CSharp, 0, 0) },
+            { GLFW_KEY_V,      echus::Note(echus::NoteID::D,      0, 0) },
+            { GLFW_KEY_G,      echus::Note(echus::NoteID::DSharp, 0, 0) },
+            { GLFW_KEY_B,      echus::Note(echus::NoteID::E,      0, 0) },
+            { GLFW_KEY_N,      echus::Note(echus::NoteID::F,      0, 0) },
+            { GLFW_KEY_J,      echus::Note(echus::NoteID::FSharp, 0, 0) },
+            { GLFW_KEY_M,      echus::Note(echus::NoteID::G,      0, 0) },
+            { GLFW_KEY_K,      echus::Note(echus::NoteID::GSharp, 0, 0) },
+            { GLFW_KEY_COMMA,  echus::Note(echus::NoteID::A,      1, 0) },
+            { GLFW_KEY_L,      echus::Note(echus::NoteID::ASharp, 1, 0) },
+            { GLFW_KEY_PERIOD, echus::Note(echus::NoteID::B,      1, 0) }
+        });
     }
 private:
     echus::SoundMachine m_snd;
-    float               m_freq;
+    // float               m_freq;
     echus::Instrument*  m_instrument;
+    echus::Note         m_note;
 
-    std::unordered_map<int, bool> m_keys;
-    std::unordered_map<int, int>  m_notes;
+    std::unordered_map<int, bool>         m_keys;
+    std::unordered_map<int, echus::Note>  m_notes;
 };
 
 int main(int, char**) {

@@ -13,17 +13,10 @@ namespace echus::instruments {
             , m_osc3(WaveShape::PsuedoRandomNoise)
             , m_envelope(0.1f, 0.01f, 0.2f, 1.0f, 0.8f)
         { }
-
-        virtual void SetNoteOn(float t) override {
-            m_envelope.SetNoteOn(t);
-        }
-
-        virtual void SetNoteOff(float t) override {
-            m_envelope.SetNoteOff(t);
-        }
     protected:
-        virtual float Sound(float freq, float t) const override {
-            return m_envelope(t) * (
+        virtual float Sound(const Note& note, float t) const override {
+            const float freq = note.GetFrequency();
+            return m_envelope.AmplitudeAt(t, note) * (
                 + 1.00f * m_osc0.Oscillate(t, 1.0f * freq, 5.0f, 0.001f)
                 + 0.50f * m_osc1.Oscillate(t, 1.5f * freq)
                 + 0.25f * m_osc2.Oscillate(t, 2.0f * freq)
@@ -44,17 +37,10 @@ namespace echus::instruments {
             , m_osc2(WaveShape::Sine)
             , m_envelope(0.01f, 1.0f, 1.0f, 1.0f, 0.0f)
         { }
-
-        virtual void SetNoteOn(float t) override {
-            m_envelope.SetNoteOn(t);
-        }
-
-        virtual void SetNoteOff(float t) override {
-            m_envelope.SetNoteOff(t);
-        }
     protected:
-        virtual float Sound(float freq, float t) const override {
-            return m_envelope(t) * (
+        virtual float Sound(const Note& note, float t) const override {
+            const float freq = note.GetFrequency();
+            return m_envelope.AmplitudeAt(t, note) * (
                 + 1.00f * m_osc0.Oscillate(t, 2.0f * freq, 5.0f, 0.001f)
                 + 0.50f * m_osc1.Oscillate(t, 3.0f * freq)
                 + 0.25f * m_osc2.Oscillate(t, 4.0f * freq)
