@@ -28,8 +28,10 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 
 add_library(echus-lib STATIC
     projects/echus-lib/src/SoundMachine.cpp
-    projects/echus-lib/include/echus/SoundMachine.hpp
+    projects/echus-lib/include/echus/Instruments.hpp
     projects/echus-lib/include/echus/Math.hpp
+    projects/echus-lib/include/echus/SoundMachine.hpp
+    projects/echus-lib/include/echus/Synthesis.hpp
 )
 target_include_directories(echus-lib PUBLIC
     projects/echus-lib/include
