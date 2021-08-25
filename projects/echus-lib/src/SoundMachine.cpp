@@ -110,14 +110,12 @@ namespace echus {
                     float* sample = reinterpret_cast<float*>(
                         areas[channel].ptr + areas[channel].step * frame
                     );
-                    *sample = snd.GetMasterVolume() * a;
+                    *sample = snd.GetMasterVolume()
+                            * std::clamp(a, -1.0f, 1.0f);
                 }
             }
             
-            snd.m_time_offset = std::fmod(
-                snd.m_time_offset + seconds_per_frame * frame_count,
-                1.0f
-            );
+            snd.m_time_offset += seconds_per_frame * frame_count;
 
             if ((error = soundio_outstream_end_write(outstream)))
                 throw std::runtime_error(soundio_strerror(error));
