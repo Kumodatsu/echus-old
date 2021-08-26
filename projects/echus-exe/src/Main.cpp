@@ -2,16 +2,17 @@
 #include <echus/Math.hpp>
 #include <echus/Synthesis.hpp>
 #include <echus/Instruments.hpp>
-#include <nanogui/nanogui.h>
 #include <glfw/glfw3.h>
 #include <iostream>
 #include <unordered_map>
+#include <string>
+#include "GUI.hpp"
 
 class App : public nanogui::Screen {
 public:
     App()
         : nanogui::Screen(
-            nanogui::Vector2i(500, 700), // size
+            nanogui::Vector2i(1440, 810), // size
             "Echus",                     // title
             true,                        // resizable
             false                        // fullscreen
@@ -22,12 +23,9 @@ public:
     { 
         using namespace echus;
         
-        nanogui::Window window(this, "Settings");
-
-        draw_all();
-        set_visible(true);
+        SetUpUI();
+        
         perform_layout();
-        window.center();
 
         SetUpInput();
 
@@ -66,6 +64,62 @@ public:
             }
         }
         return false;
+    }
+
+    void SetUpUI() {
+        using namespace nanogui;
+        using namespace std::string_literals;
+
+        auto* window = new Window(this, "Settings");
+        window->set_position(Vector2i(15, 15));
+        window->set_layout(new BoxLayout(Orientation::Horizontal));
+
+        for (size_t i = 0; i < m_instrument.GetOscillators().size(); i++) {
+            auto& osc = m_instrument.GetOscillator(i);
+            
+            auto* panel = new Widget(window);
+            panel->set_layout(new GroupLayout);
+
+            new Label(panel, "Oscillator "s + std::to_string(i));
+            new Label(panel, "Wave Shape");
+            (new ComboBox(panel, {
+                "Sine", "Square", "Triangle", "Sawtooth", "Sawsmooth",
+                "Psuedo Random Noise", "Off"
+            }))->set_callback([this, i](int value) {
+                m_instrument.GetOscillator(i).Shape =
+                    static_cast<echus::WaveShape>(value);
+            });
+            create_slider(*panel, "Amplitude", 0.0f, 1.0f,
+            [&osc](float v) {
+                osc.Amplitude = v;
+            });
+            create_slider(*panel, "Scale", 0.0f, 16.0f,
+            [&osc](float v) {
+                osc.Scale = v;
+            });
+            create_slider(*panel, "LFO Frequency", "Hz", 0.0f, 300.0f,
+            [&osc](float v) {
+                osc.LFOFreq = v;
+            });
+            create_slider(*panel, "LFO Amplitude", 0.0f, 1.0f,
+            [&osc](float v) {
+                osc.LFOAmp = v;
+            });
+            
+        }
+        
+        auto* panel = new Widget(window);
+        panel->set_layout(new GroupLayout);
+        new Label(panel, "Envelope");
+        create_slider(*panel, "Attack", "s", 0.0f, 10.0f, [this](float v) {
+            this->m_instrument.GetEnvelope().Attack = v;
+        });
+        create_slider(*panel, "Decay", "s", 0.0f, 10.0f, [this](float v) {
+            this->m_instrument.GetEnvelope().Decay = v;
+        });
+        create_slider(*panel, "Release", "s", 0.0f, 10.0f, [this](float v) {
+            this->m_instrument.GetEnvelope().Release = v;
+        });
     }
 
     void SetUpInput() {
@@ -118,6 +172,8 @@ int main(int, char**) {
     
     nanogui::init();
     App app;
+    app.set_visible(true);
+    app.draw_all();
     
     nanogui::mainloop();
 

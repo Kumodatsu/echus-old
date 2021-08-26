@@ -151,6 +151,30 @@ namespace echus {
 
         inline float GetVolume() const { return m_volume; }
         inline void SetVolume(float volume) { m_volume = volume; }
+
+        inline const std::vector<Oscillator>& GetOscillators() const {
+            return m_oscillators;
+        }
+
+        inline std::vector<Oscillator>& GetOscillators() {
+            return m_oscillators;
+        }
+
+        inline const Oscillator& GetOscillator(size_t i) const {
+            return m_oscillators[i];
+        }
+
+        inline Oscillator& GetOscillator(size_t i) {
+            return m_oscillators[i];
+        }
+
+        inline const Envelope& GetEnvelope() const {
+            return m_envelope;
+        }
+
+        inline Envelope& GetEnvelope() {
+            return m_envelope;
+        }
     private:
         std::vector<Oscillator> m_oscillators;
         Envelope                m_envelope;
