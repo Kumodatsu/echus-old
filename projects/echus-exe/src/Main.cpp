@@ -30,7 +30,9 @@ public:
         SetUpInput();
 
         m_snd.StartAsync([this](float t) -> float {
-            return this->m_instrument.Play(this->m_note, t);
+            const float a = this->m_instrument.Play(this->m_note, t);
+            UpdateWaveGraph(a);
+            return a;
         });
     }
 
@@ -82,44 +84,61 @@ public:
 
             new Label(panel, "Oscillator "s + std::to_string(i));
             new Label(panel, "Wave Shape");
-            (new ComboBox(panel, {
-                "Sine", "Square", "Triangle", "Sawtooth", "Sawsmooth",
-                "Psuedo Random Noise", "Off"
-            }))->set_callback([this, i](int value) {
-                m_instrument.GetOscillator(i).Shape =
-                    static_cast<echus::WaveShape>(value);
-            });
-            create_slider(*panel, "Amplitude", 0.0f, 1.0f,
-            [&osc](float v) {
-                osc.Amplitude = v;
-            });
-            create_slider(*panel, "Scale", 0.0f, 16.0f,
-            [&osc](float v) {
-                osc.Scale = v;
-            });
+            create_combo_box<echus::WaveShape>(
+                *panel,
+                {
+                    "Sine",
+                    "Square",
+                    "Triangle",
+                    "Sawtooth",
+                    "Sawsmooth",
+                    "Psuedo Random Noise",
+                    "Off"
+                },
+                osc.Shape,
+                [&osc](echus::WaveShape shape) {
+                    osc.Shape = shape;
+                }
+            );
+            create_slider(*panel, "Amplitude", 0.0f, 1.0f, osc.Amplitude,
+                [&osc](float v) { osc.Amplitude = v; });
+            create_slider(*panel, "Scale", 0.0f, 16.0f, osc.Scale,
+                [&osc](float v) { osc.Scale = v; });
             create_slider(*panel, "LFO Frequency", "Hz", 0.0f, 300.0f,
-            [&osc](float v) {
-                osc.LFOFreq = v;
-            });
-            create_slider(*panel, "LFO Amplitude", 0.0f, 1.0f,
-            [&osc](float v) {
-                osc.LFOAmp = v;
-            });
-            
+                osc.LFOFreq, [&osc](float v) { osc.LFOFreq = v; });
+            create_slider(*panel, "LFO Amplitude", 0.0f, 1.0f, osc.LFOAmp,
+                [&osc](float v) { osc.LFOAmp = v; });
         }
         
         auto* panel = new Widget(window);
         panel->set_layout(new GroupLayout);
         new Label(panel, "Envelope");
-        create_slider(*panel, "Attack", "s", 0.0f, 10.0f, [this](float v) {
-            this->m_instrument.GetEnvelope().Attack = v;
-        });
-        create_slider(*panel, "Decay", "s", 0.0f, 10.0f, [this](float v) {
-            this->m_instrument.GetEnvelope().Decay = v;
-        });
-        create_slider(*panel, "Release", "s", 0.0f, 10.0f, [this](float v) {
-            this->m_instrument.GetEnvelope().Release = v;
-        });
+        echus::Envelope& env = m_instrument.GetEnvelope();
+        create_slider(*panel, "Attack", "s", 0.0f, 10.0f, env.Attack,
+            [&env](float v) { env.Attack = v; });
+        create_slider(*panel, "Decay", "s", 0.0f, 10.0f, env.Decay,
+            [&env](float v) { env.Decay = v; });
+        create_slider(*panel, "Release", "s", 0.0f, 10.0f, env.Release,
+            [&env](float v) { env.Release = v; });
+        create_slider(*panel, "Peak Amplitude", 0.0f, 1.0f, env.Peak,
+            [&env](float v) { env.Peak = v; });
+        create_slider(*panel, "Sustain Amplitude", 0.0f, 1.0f, env.Sustain,
+            [&env](float v) { env.Sustain = v; });
+
+        m_wave_graph = new Graph(window, "Wave");
+        m_wave_graph->set_fill_color(Color(0.0f, 0.0f));
+        m_wave_graph->set_stroke_color(Color(0.1f, 0.9f, 0.3f, 1.0f));
+        std::vector<float>& values = m_wave_graph->values();
+        values.resize(448);
+        for (int i = 0; i < values.size(); i++) {
+            values[i] = 0.5f;
+        }
+    }
+
+    void UpdateWaveGraph(float a) {
+        std::vector<float>& values = m_wave_graph->values();
+        values.erase(values.begin());
+        values.push_back(0.5f + 0.5f * a);
     }
 
     void SetUpInput() {
@@ -165,6 +184,8 @@ private:
 
     std::unordered_map<int, bool>         m_keys;
     std::unordered_map<int, echus::Note>  m_notes;
+
+    nanogui::Graph* m_wave_graph;
 };
 
 int main(int, char**) {
@@ -175,7 +196,7 @@ int main(int, char**) {
     app.set_visible(true);
     app.draw_all();
     
-    nanogui::mainloop();
+    nanogui::mainloop(16.0f);
 
     nanogui::shutdown();
     return 0;
