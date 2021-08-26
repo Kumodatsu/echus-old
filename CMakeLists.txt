@@ -46,6 +46,7 @@ target_compile_features(echus-lib PUBLIC
 
 add_executable(echus-exe
     projects/echus-exe/src/Main.cpp
+    projects/echus-exe/src/GUI.hpp
 )
 target_include_directories(echus-exe PUBLIC
     projects/echus-exe/src
