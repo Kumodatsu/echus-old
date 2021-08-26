@@ -12,7 +12,8 @@ namespace echus {
         Triangle,
         Sawtooth,
         Sawsmooth,
-        PsuedoRandomNoise
+        PsuedoRandomNoise,
+        Line
     };
 
     struct Oscillator {
@@ -69,6 +70,7 @@ namespace echus {
                     2.0f * (float(rand()) / float(RAND_MAX)) - 1.0f
                 );
                 break;
+            case WaveShape::Line:
             default:
                 output = 0.0f;
                 break;
