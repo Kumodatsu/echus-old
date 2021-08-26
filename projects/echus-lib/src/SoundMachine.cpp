@@ -68,7 +68,7 @@ namespace echus {
     void SoundMachine::WaitForEvents() {
         soundio_wait_events(m_soundio);
     }
-    
+
     void SoundMachine::StreamCallback(
         SoundIoOutStream* outstream,
         int               frame_count_min,
@@ -104,14 +104,14 @@ namespace echus {
             for (int frame = 0; frame < frame_count; frame++) {
                 const float
                     t = snd.m_time_offset + frame * seconds_per_frame,
-                    a = snd.m_generate_sound(t);
+                    a = snd.GetMasterVolume()
+                      * std::clamp(snd.m_generate_sound(t), -1.0f, 1.0f);
                 for (int channel = 0; channel < layout.channel_count;
                         channel++) {
                     float* sample = reinterpret_cast<float*>(
                         areas[channel].ptr + areas[channel].step * frame
                     );
-                    *sample = snd.GetMasterVolume()
-                            * std::clamp(a, -1.0f, 1.0f);
+                    *sample = a;
                 }
             }
             
