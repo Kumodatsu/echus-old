@@ -1,9 +1,11 @@
 # Echus
 An exploration of real-time sound synthesis.
 
-Note that this is just a personal project made for fun at the moment.
+Note that this was just a personal project made for fun.
 It is certainly not production worthy, but perhaps it can serve as inspiration
 or provide some educational value.
+I have stopped working on this project in favor of a different sound synthesis
+project.
 
 ## Building and running
 All commands given must be run from the repository's root folder, i.e. the
